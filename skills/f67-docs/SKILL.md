@@ -3,7 +3,7 @@ name: f67-docs
 description: >
   Generates or updates project documentation from F67 memory and completed workflow
   artifacts — READMEs, API docs, architecture docs, domain guides. Trigger with
-  "/f67-docs", "/f67-docs <domain or area>", "update the docs for", or "document the
+  "/f67-docs", "/f67-docs [domain or area]", "update the docs for", or "document the
   billing domain".
 ---
 

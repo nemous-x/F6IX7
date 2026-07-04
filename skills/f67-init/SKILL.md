@@ -48,4 +48,12 @@ Before declaring init complete:
 - Spot-check 3 random file→domain associations by reading the files.
 - Report a summary: domains created, files mapped, coverage gaps.
 
+## Phase 5 — Recommendations
+
+After validation, always close with tailored recommendations:
+
+1. **Business-specific skills**: for each confirmed domain with substantial business rules, suggest the user create a project skill in `.claude/f67/skills/<domain>.md` (same format as the plugin's stack skills) encoding that domain's non-obvious rules and patterns. Offer to draft them from the generated memory.
+2. **Architecture for young projects**: if the repository is new or largely empty, recommend adopting DDD (domain/backend-heavy products) or feature-sliced architecture (frontend-heavy products) before feature work begins, explain the tradeoff in two sentences each, and record the user's choice as the first decision record.
+3. **TDD for business logic**: note that F67's planner defaults to TDD for business-logic features and where that expectation comes from.
+
 Recommend `/f67-sync` cadence and `/f67-prompt` as the next step.

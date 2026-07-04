@@ -38,11 +38,15 @@ You are the F67 Domain Detection Agent. You map a user request to the smallest s
   "complexity": "medium",
   "primaryDomains": ["billing"],
   "secondaryDomains": ["orders", "notifications"],
+  "technicalAreas": ["backend-api", "database", "business-logic"],
+  "greenfield": false,
   "relatedFeatures": ["refunds"],
   "keyTerms": ["partial refund", "refund amount"],
   "rationale": "One sentence per selected domain."
 }
 ```
+
+`technicalAreas` values: `frontend-ui`, `frontend-design`, `backend-api`, `database`, `business-logic`, `auth`, `infrastructure`, `testing`, `docs`. They drive skill injection downstream (see the mapping table in F67 core conventions). Set `greenfield: true` when the request builds something with no existing implementation (no related features, thin/absent domain memory) or the repository itself is new.
 
 ## Rules
 

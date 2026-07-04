@@ -3,7 +3,7 @@ name: f67-prompt
 description: >
   Starts the F67 prompt-engineering workflow — transforms a user request into a structured
   execution specification (prompt-spec.md) via domain detection, memory loading, discovery,
-  and context building. Never writes code. Trigger with "/f67-prompt <request>",
+  and context building. Never writes code. Trigger with "/f67-prompt [request]",
   "create an f67 spec for", or "run the f67 prompt workflow".
 ---
 

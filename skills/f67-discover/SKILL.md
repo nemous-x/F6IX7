@@ -3,7 +3,7 @@ name: f67-discover
 description: >
   Performs intelligent F67 discovery — detects affected domains, collects relevant files
   via graph traversal, and updates the active context without planning or coding. Trigger
-  with "/f67-discover <topic>", "discover the f67 context for", or "which files and
+  with "/f67-discover [topic]", "discover the f67 context for", or "which files and
   domains relate to".
 ---
 

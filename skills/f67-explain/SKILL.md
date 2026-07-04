@@ -3,7 +3,7 @@ name: f67-explain
 description: >
   Explains architecture, current implementation, business flow, dependencies, or data flow
   for any part of the project using F67 memory and graphs — read-only, no modifications.
-  Trigger with "/f67-explain <topic>", "explain how X works in this project", or
+  Trigger with "/f67-explain [topic]", "explain how X works in this project", or
   "walk me through the flow of".
 ---
 

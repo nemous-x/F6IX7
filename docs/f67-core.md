@@ -133,4 +133,30 @@ skills:
 
 ## Skill injection
 
-Stack knowledge lives in `${CLAUDE_PLUGIN_ROOT}/templates/stack-skills/*.md`. Agents that implement or review code load only the stack skill files matching `config.yaml → skills.enabled` and the current task's declared `requiredSkills`. Never load all of them.
+Stack knowledge lives in `${CLAUDE_PLUGIN_ROOT}/templates/stack-skills/*.md`, and projects may add their own skills under `.claude/f67/skills/`. Skills are resolved during context building, declared in the prompt-spec, and consumed by the planner, implementer, tester, and reviewer. Never load all skills — only the mapped ones.
+
+### Technical-area → skill mapping
+
+The domain detector tags each request with technical areas; the context builder maps areas to skills:
+
+| Technical area | Injected skills |
+|---|---|
+| react / next / component / page work | `react-nextjs` + `frontend-design` |
+| styling / design-system work | `tailwind-shadcn` + `frontend-design` |
+| API / endpoint / backend service work | `api-design` + stack backend skill (e.g. `nestjs`) |
+| database / schema / migration work | `prisma` (or project ORM skill) |
+| domain logic / business rules | `ddd-cqrs` + `testing` |
+| auth / permissions | `authentication` |
+| deployment / CI / docker / envs | `infrastructure` |
+| new module / greenfield structure | `feature-sliced` or `ddd-cqrs` (see recommendations) |
+
+Resolution order per matched area: project skill in `.claude/f67/skills/` → plugin stack skill → externally installed Claude Code skill whose description matches the area (reference it by name in the spec so the implementer invokes it). Intersect with `config.yaml → skills.enabled` when it is non-empty; areas with no matching skill are noted in the spec as gaps.
+
+### Business-specific skills
+
+F67 should actively suggest that users create project skills for their recurring business domains (e.g. a `billing` skill encoding invoice rounding rules, a `claims-processing` skill). Trigger this suggestion when: `/f67-init` completes, a domain accumulates 3+ features, or the memory evolver records repeated corrections in one domain. Project skills live in `.claude/f67/skills/<name>.md` (same format as stack skills) and are auto-mapped by domain name.
+
+### Methodology recommendations
+
+- **TDD for business logic**: when a request's primary work is domain/business rules (requestType `feature` touching business-rules), the planner defaults to the `tdd` strategy and says so explicitly. Deviating requires a stated reason.
+- **DDD or feature-sliced for greenfield**: when the project is new, or the request builds a capability with no existing implementation (no related features, thin domain memory), recommend structuring it with DDD (backend/domain-heavy) or feature-sliced architecture (frontend-heavy) before planning. `/f67-init` on a young repo and `/f67-brainstorm` must surface this recommendation; the planner records the choice as a decision record.
