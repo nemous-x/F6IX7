@@ -128,33 +128,40 @@ memory:
   autoEvolve: true     # run memory evolution after workflows
   protectCurated: true
 skills:
-  enabled: []          # stack skills to inject, e.g. [react, prisma, testing]
+  available: []        # resolved skills discovered/installed for this project, filled by /f67-init and /f67-sync
+  requested: []        # skills F67 recommended but the user hasn't added yet
 ```
 
 ## Skill injection
 
-Stack knowledge lives in `${CLAUDE_PLUGIN_ROOT}/templates/stack-skills/*.md`, and projects may add their own skills under `.claude/f67/skills/`. Skills are resolved during context building, declared in the prompt-spec, and consumed by the planner, implementer, tester, and reviewer. Never load all skills — only the mapped ones.
+F67 ships no stack-specific knowledge. It ships *rules* for discovering, injecting, and requesting skills (`${CLAUDE_PLUGIN_ROOT}/templates/skill-injection-rules.md`). Skills are resolved during context building, declared in the prompt-spec, and consumed by the planner, implementer, tester, and reviewer. Never load all available skills — only the mapped ones.
 
-### Technical-area → skill mapping
+### Skill sources (resolution order)
 
-The domain detector tags each request with technical areas; the context builder maps areas to skills:
+1. **Project skills** — `.claude/f67/skills/*.md`: rules specific to this project (business domains, the project's stack conventions).
+2. **Installed skills** — Claude Code skills and plugins already installed in the user's environment. Match by comparing skill names/descriptions against the request's technical areas.
+3. **Requested skills** — nothing matched: F67 must not silently proceed. Recommend that the user install a matching skill from a plugin marketplace, or offer to generate a project skill draft into `.claude/f67/skills/` from the repo's own conventions and memory. Record the recommendation in `config.yaml → skills.requested`.
 
-| Technical area | Injected skills |
+### Technical-area → skill category mapping
+
+The domain detector tags each request with technical areas; the context builder maps areas to skill *categories* and searches the sources above for matches:
+
+| Technical area | Skill categories to search for |
 |---|---|
-| react / next / component / page work | `react-nextjs` + `frontend-design` |
-| styling / design-system work | `tailwind-shadcn` + `frontend-design` |
-| API / endpoint / backend service work | `api-design` + stack backend skill (e.g. `nestjs`) |
-| database / schema / migration work | `prisma` (or project ORM skill) |
-| domain logic / business rules | `ddd-cqrs` + `testing` |
-| auth / permissions | `authentication` |
-| deployment / CI / docker / envs | `infrastructure` |
-| new module / greenfield structure | `feature-sliced` or `ddd-cqrs` (see recommendations) |
+| frontend-ui | the project's frontend framework, component patterns |
+| frontend-design | design system, UI/UX best practices |
+| backend-api | the project's backend framework, API design |
+| database | the project's ORM/database, data modeling, migrations |
+| business-logic | the affected business domain, domain modeling (DDD), TDD |
+| auth | authentication/authorization, security |
+| infrastructure | deployment, CI/CD, containers, observability |
+| testing | the project's test framework, testing strategy |
 
-Resolution order per matched area: project skill in `.claude/f67/skills/` → plugin stack skill → externally installed Claude Code skill whose description matches the area (reference it by name in the spec so the implementer invokes it). Intersect with `config.yaml → skills.enabled` when it is non-empty; areas with no matching skill are noted in the spec as gaps.
+When no skill matches a category, fall back to the general per-category engineering baselines in `skill-injection-rules.md` and record the gap in the spec plus a skill request for the user.
 
 ### Business-specific skills
 
-F67 should actively suggest that users create project skills for their recurring business domains (e.g. a `billing` skill encoding invoice rounding rules, a `claims-processing` skill). Trigger this suggestion when: `/f67-init` completes, a domain accumulates 3+ features, or the memory evolver records repeated corrections in one domain. Project skills live in `.claude/f67/skills/<name>.md` (same format as stack skills) and are auto-mapped by domain name.
+F67 should actively suggest that users create project skills for their recurring business domains (e.g. a `billing` skill encoding invoice rounding rules, a `claims-processing` skill). Trigger this suggestion when: `/f67-init` completes, a domain accumulates 3+ features, or the memory evolver records repeated corrections in one domain. Project skills live in `.claude/f67/skills/<name>.md` and are auto-mapped by domain name.
 
 ### Methodology recommendations
 

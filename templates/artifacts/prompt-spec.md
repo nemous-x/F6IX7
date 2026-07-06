@@ -46,7 +46,7 @@ Quoted verbatim from domain memory, with source file.
 
 ## Required skills
 
-e.g. `[prisma, testing]` — subset of config.yaml skills.enabled
+Per technical area: resolved skill (project / installed, by name) or `gap → baseline + skill request` per skill-injection-rules.md.
 
 ## Testing strategy
 

@@ -31,7 +31,7 @@ From folder structure, module names, route groups, database schema, and domain l
 
 Create `.claude/f67/` per the core conventions layout:
 
-1. `config.yaml` — fill `project.*` from Phase 1; set `skills.enabled` from detected stack.
+1. `config.yaml` — fill `project.*` from Phase 1. Then resolve skills per `${CLAUDE_PLUGIN_ROOT}/templates/skill-injection-rules.md`: match the detected stack and technical areas against the user's installed Claude Code skills/plugins and any existing project skills; record matches in `skills.available` and unmatched categories in `skills.requested`.
 2. `memory/global/` — write architecture.md, coding-standards.md, conventions.md, testing.md, ui.md, design-system.md, security.md, glossary.md from Phase 1 findings. Use templates in `${CLAUDE_PLUGIN_ROOT}/templates/memory/global/`. Only create files with real content.
 3. `memory/domains/<domain>/` — for each confirmed domain, dispatch `f67-discovery` scoped to that domain, then write its memory files from `${CLAUDE_PLUGIN_ROOT}/templates/memory/domain/`. Populate related-files.json and per-domain graph.json.
 4. `graphs/` — build domain-graph.json, file-graph.json, dependency-graph.json per `${CLAUDE_PLUGIN_ROOT}/schemas/graph.schema.json`.
@@ -52,8 +52,9 @@ Before declaring init complete:
 
 After validation, always close with tailored recommendations:
 
-1. **Business-specific skills**: for each confirmed domain with substantial business rules, suggest the user create a project skill in `.claude/f67/skills/<domain>.md` (same format as the plugin's stack skills) encoding that domain's non-obvious rules and patterns. Offer to draft them from the generated memory.
-2. **Architecture for young projects**: if the repository is new or largely empty, recommend adopting DDD (domain/backend-heavy products) or feature-sliced architecture (frontend-heavy products) before feature work begins, explain the tradeoff in two sentences each, and record the user's choice as the first decision record.
-3. **TDD for business logic**: note that F67's planner defaults to TDD for business-logic features and where that expectation comes from.
+1. **Skill requests**: present `skills.requested` — for each detected stack/requirement with no matching installed skill, recommend installing one from a plugin marketplace or offer to generate a project skill draft from the repo's own conventions (per skill-injection-rules.md, evidence-based, marked `f67:generated`).
+2. **Business-specific skills**: for each confirmed domain with substantial business rules, suggest the user create a project skill in `.claude/f67/skills/<domain>.md` encoding that domain's non-obvious rules and patterns. Offer to draft them from the generated memory.
+3. **Architecture for young projects**: if the repository is new or largely empty, recommend adopting DDD (domain/backend-heavy products) or feature-sliced architecture (frontend-heavy products) before feature work begins, explain the tradeoff in two sentences each, and record the user's choice as the first decision record.
+4. **TDD for business logic**: note that F67's planner defaults to TDD for business-logic features and where that expectation comes from.
 
 Recommend `/f67-sync` cadence and `/f67-prompt` as the next step.

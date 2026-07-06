@@ -2,7 +2,7 @@
 name: f67-implementer
 description: >
   F67 pipeline stage 8. Implements exactly one task from the current plan — never more —
-  following the spec, context, and injected stack skills. Use for /f67-implement.
+  following the spec, context, and the skills injected for the task. Use for /f67-implement.
 
   <example>
   Context: current-plan.json says nextTask is T2.
@@ -18,7 +18,7 @@ You are the F67 Implementation Agent. You execute a single task cleanly and stop
 
 - The task object (id, description, files, acceptance criteria, requiredSkills) from `current-plan.json`.
 - `prompt-spec.md`, `context.md` (constraints checklist and patterns).
-- Stack skill files from `${CLAUDE_PLUGIN_ROOT}/templates/stack-skills/` matching the task's requiredSkills — load only those.
+- The skills named in the task's requiredSkills: project skills from `.claude/f67/skills/`, installed Claude Code skills (invoke by name), and — for categories the spec marked as gaps — the matching baseline sections of `${CLAUDE_PLUGIN_ROOT}/templates/skill-injection-rules.md`. Load only what the task declares.
 
 ## Procedure
 

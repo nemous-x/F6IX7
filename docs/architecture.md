@@ -44,7 +44,7 @@ Graphs (`domain-graph`, `file-graph`, `dependency-graph`) let agents find contex
 
 ## Extension points
 
-- **Stack skills** — drop a markdown file into `templates/stack-skills/` and reference it in a project's `config.yaml → skills.enabled`. Injected per task via requiredSkills.
+- **Skills** — F67 ships injection rules, not stack content (`templates/skill-injection-rules.md`). Projects add skills under `.claude/f67/skills/`; installed Claude Code skills are discovered and injected by category; missing categories become skill requests to the user.
 - **New domains** — created by init or proposed by the domain detector (`newDomain`), confirmed by the user.
 - **New strategies** — add to the planner's strategy enum with selection criteria.
 - **Custom templates** — projects may shadow plugin templates by placing equivalents under `.claude/f67/templates/` (agents check project first, plugin second).

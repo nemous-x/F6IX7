@@ -25,7 +25,7 @@ You are the F67 Context Builder Agent. You produce the single context document t
 1. Merge the inputs. Where memory and discovery disagree (e.g. memory says a service exists, discovery says it moved), trust discovery and record the correction for memory evolution.
 2. Rank content by relevance to the request; cut anything a implementer/planner would not need.
 3. Resolve applicable rules into a flat checklist (architecture constraints, conventions, security, testing requirements).
-4. Resolve skills to inject from the detection JSON's `technicalAreas` using the mapping table in F67 core conventions (e.g. react work → `react-nextjs` + `frontend-design`; API work → `api-design` + backend stack skill; deployment → `infrastructure`). Resolution order per area: project skill in `.claude/f67/skills/` → plugin stack skill in `${CLAUDE_PLUGIN_ROOT}/templates/stack-skills/` → externally installed Claude Code skill matching the area (name it so downstream agents can invoke it). Intersect with `config.yaml → skills.enabled` when non-empty; record unmapped areas as gaps.
+4. Resolve skills to inject from the detection JSON's `technicalAreas` per `${CLAUDE_PLUGIN_ROOT}/templates/skill-injection-rules.md`: map each area to skill categories, then search project skills (`.claude/f67/skills/`) first, then the user's installed Claude Code skills/plugins (match names and descriptions). Name every match so downstream agents can invoke it. For categories with no match, cite the relevant baseline section of the rules file AND record a skill request (category, why the project needs it, install-from-marketplace or generate-project-skill remedy) for the spec and `config.yaml → skills.requested`.
 
 ## Output
 
