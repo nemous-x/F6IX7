@@ -10,6 +10,8 @@ All F67 project knowledge lives in the repository being worked on, never in the 
 .claude/f67/
 ├── config.yaml                 # Project-level F67 configuration
 ├── memory/
+│   ├── index.json              # THE entry point: domain list, keywords, summaries,
+│   │                           # layers, per-domain updatedAt, lastSyncCommit
 │   ├── global/                 # architecture.md, coding-standards.md, security.md,
 │   │                           # testing.md, ui.md, design-system.md, glossary.md, conventions.md
 │   ├── domains/<domain>/       # One folder per business domain (see Domain memory files)
@@ -18,17 +20,14 @@ All F67 project knowledge lives in the repository being worked on, never in the 
 │   └── sessions/               # Session summaries (YYYY-MM-DD-slug.md)
 ├── graphs/
 │   ├── domain-graph.json       # Domain ↔ domain relationships
-│   ├── file-graph.json         # File → domain/feature associations
-│   └── dependency-graph.json   # Service/repository/component/API/test edges
+│   └── dependency-graph.json   # Coarse service/API/event edges across domains
+│                               # (per-file mapping lives in each domain's related-files.json — no monolithic file graph)
 ├── state/
-│   ├── current-session.json
-│   ├── active-context.json
+│   ├── current-session.json    # Active command, artifact path, stage
 │   ├── current-spec.json       # Pointer to active prompt-spec artifact
-│   ├── current-plan.json       # Pointer to active plan + task tree
-│   ├── progress.json
-│   ├── changed-files.json
-│   ├── selected-domains.json
-│   └── execution-history.json
+│   ├── current-plan.json       # Task ids/status/nextTask ONLY — content lives in the plan doc
+│   ├── changed-files.json      # path + change + task id, current workflow only
+│   └── execution-history.json  # Completed workflows, lastSyncCommit
 ├── artifacts/
 │   └── <NNN>-<slug>/           # One folder per workflow run
 │       ├── prompt-spec.md
@@ -37,7 +36,31 @@ All F67 project knowledge lives in the repository being worked on, never in the 
 │       ├── review-report.md
 │       └── improvement-plan.md
 └── logs/
+    └── metrics.jsonl           # One line per workflow: stages, dispatches, artifact sizes, duration
 ```
+
+## memory/index.json — the entry point
+
+Every F67 command starts by reading this one small file. It replaces the domain-detection agent dispatch entirely — the orchestrator classifies the request against it directly in-session.
+
+```json
+{
+  "updated": "",
+  "lastSyncCommit": "",
+  "domains": {
+    "billing": {
+      "summary": "Invoicing, payments, refunds",
+      "keywords": ["invoice", "refund", "payment", "tax"],
+      "layers": ["backend", "web"],
+      "features": 4,
+      "updatedAt": ""
+    }
+  },
+  "greenfieldHint": false
+}
+```
+
+Maintained by the memory-evolver on every delta and by `/f67-sync`. If `index.json` is missing, memory predates this format — regenerate it from the domain folders (cheap) before proceeding.
 
 ## Domain memory files — organized by layer
 
@@ -64,15 +87,16 @@ Rules:
 - Only create files that have content. An empty stub is worse than a missing file.
 - Keep each file under ~150 lines; dense factual bullets, no prose.
 
-## Memory freshness — continuous updates, not end-of-workflow
+## Memory freshness — enforced, not hoped for
 
-Memory must never lag the code. The update cadence:
+Memory must never lag the code. Four mechanisms keep it current:
 
-1. **After every completed task** (implement/improve/execute): the executing agent itself appends the delta before returning — one dated line in each affected domain's `history.md`, new/moved/deleted paths in `related-files.json`, and any new business rule under `business-logic.md → ## Learned`. This costs a few lines and keeps memory current at all times.
-2. **After every workflow**: the memory-evolver runs in *delta mode* — folds the artifact into feature records, graphs, and decisions. Cheap, incremental.
-3. **On `/f67-sync`**: full reconciliation against git history.
+1. **After every completed task** (implement/improve/execute): the executing agent itself writes the delta before returning — dated line in each affected domain's `history.md`, path changes in `related-files.json`, new rules under `business-logic.md → ## Learned`, and the domain's `updatedAt` in `index.json`.
+2. **After every workflow** (the review/improve stage or wherever the workflow ends): the orchestrator dispatches the memory-evolver in *delta mode* — folds the artifact into feature records, graphs, decisions, and the index. This is not optional and not deferred to `/f67-sync`.
+3. **Staleness check at every command start**: after reading `index.json`, the orchestrator compares `lastSyncCommit` with `git rev-parse HEAD`. If the repo has moved significantly (work merged from other machines/teammates, or any domain's memory contradicts what discovery finds), it says so in one line and recommends `/f67-sync` — for `large` workflows it should run the sync delta before building context, because stale memory produces wrong specs.
+4. **On `/f67-sync`**: full reconciliation against git history.
 
-An agent that finishes a task without writing its memory delta has not finished the task.
+An agent that finishes a task without writing its memory delta has not finished the task. A workflow that ends without the evolver delta is not finished either.
 
 ## Graph format
 
@@ -90,11 +114,11 @@ All graph files use one schema (`schemas/graph.schema.json` in the plugin):
 Node types: `domain`, `feature`, `service`, `repository`, `component`, `api`, `test`, `database`, `event`, `file`.
 Edge types: `contains`, `implements`, `uses`, `persists-to`, `calls`, `tested-by`, `emits`, `listens-to`, `related-to`.
 
-Agents traverse graphs to find context instead of scanning the repository.
+Graphs stay coarse and global (domain relationships, cross-domain service/event edges). Per-file knowledge lives in each domain's layer-split `related-files.json` — that is the file graph, sharded by domain, cheap to keep fresh. Agents traverse index → domain graph → related-files instead of scanning the repository.
 
 ## The pipeline — routed by complexity
 
-The domain detector's complexity rating selects the route. Speed is a feature: never run the full pipeline on work that doesn't need it.
+The **orchestrator itself** classifies each request by reading `memory/index.json` (domains, keywords, summaries) — no detection dispatch, no round-trip. It records the classification (domains, technical areas, complexity, greenfield) in `state/current-session.json` and routes. Speed is a feature: never run the full pipeline on work that doesn't need it. When classification is genuinely uncertain between two routes, take the heavier one — misclassifying down costs quality, misclassifying up only costs tokens.
 
 | Complexity | Route |
 |---|---|
@@ -105,8 +129,8 @@ The domain detector's complexity rating selects the route. Speed is a feature: n
 Full pipeline:
 
 ```
-Detect domains → [Load memory ∥ Discover files] → Build context → Build spec
-→ Plan+Decompose → Implement (one task) → Test → Review → Improve → Evolve memory
+Classify (orchestrator, in-session) → [Load memory ∥ Discover files] → Build context
+→ Build spec → Plan+Decompose → Implement (one task) → Test → Review → Improve → Evolve memory (delta)
 ```
 
 Hard rules:
@@ -118,42 +142,28 @@ Hard rules:
 5. `/f67-implement` executes exactly one task per invocation.
 6. **Parallel dispatch**: the orchestrator runs independent agents concurrently — memory-loader and discovery together (discovery starts from graphs; the digest's gaps trigger at most one follow-up), per-domain discovery agents in parallel during `/f67-init`, and test generation for independent completed tasks in parallel.
 
-## Token discipline — binding on every agent
+## Output economy — purpose contracts, not line counts
 
-F67's value is speed. Every agent and artifact has a hard budget; exceeding it is a defect.
+There are no numeric caps. Instead, every artifact section has a stated consumer, and the producing agent is responsible for writing exactly what that consumer needs to act — nothing more, nothing less. An agent pads or truncates only if it has stopped thinking about its consumer. Scale output with the work: a two-file fix earns a short report; a twelve-task feature earns a longer one. Both are correct.
 
-| Output | Hard cap |
-|---|---|
-| Domain detection JSON | 25 lines |
-| Memory digest | 100 lines |
-| Discovery report | 80 lines |
-| context.md | 120 lines |
-| prompt-spec.md | 120 lines |
-| implementation-plan.md incl. task tree | 150 lines |
-| execution-report.md **per task section** | 25 lines |
-| review-report.md | 80 lines |
-| improvement-plan.md | 60 lines |
-| Any user-facing report from a command | 10 lines |
+Two structural bans remain, because they caused real multi-thousand-line artifacts and have no consumer:
 
-Rules that make the caps achievable:
+- **No code or diffs in artifacts. Ever.** Reference `path:line`; describe each change in prose. Diffs live in git.
+- **No restating prior artifacts.** Later stages cite earlier ones by section.
 
-- **No code in artifacts. Ever.** Reference `path:line`; describe changes in one line each. Diffs live in git, not in reports.
-- **No repetition across artifacts** — later artifacts reference earlier ones by section, never restate them.
-- **Digest, don't dump** — an agent that pastes a file it read into its output has failed.
-- **Read scoped** — agents read the file sections graphs point to, not whole files, not whole directories.
-- **User reports are conclusions** — what happened, what's next, where the artifact is. No process narration, no restating the plan.
+And three working habits:
 
-## Model routing
+- **Digest, don't dump** — an agent that pastes a file it read into its output has failed its consumer.
+- **Read scoped** — read the sections the index/graphs point to, not whole files or directories.
+- **User reports are conclusions** — outcome, what's next, where the artifact is. No process narration. Length follows substance.
 
-Match model cost to task difficulty. Agent frontmatter carries a default; the orchestrator overrides per dispatch when complexity warrants.
+## Model policy — decided by the orchestrator at dispatch time
 
-| Work | Model |
-|---|---|
-| Detection, memory loading/evolution deltas | `haiku` |
-| Discovery, context, spec, decomposition, testing, improvement | `sonnet` |
-| Planning, implementation, review — and any dispatch for `large` complexity | `inherit` (the user's chosen top model) |
+No agent has a fixed model. The orchestrator chooses per dispatch based on stakes, not on agent identity:
 
-Simple task ⇒ fast model. Complex or correctness-critical ⇒ powerful model. Never the reverse.
+- **Default: the session's model.** Quality work — anything that writes memory, judges code, plans, implements, classifies, or builds specs — gets the most capable model available. Memory is the system's brain; polluting it to save tokens is the most expensive mistake F67 can make.
+- **Downgrade only provably mechanical dispatches**: pure file-map/graph bookkeeping in `/f67-sync`, regenerating `index.json` from existing folders, formatting a session summary. If the dispatch requires judgment about code or business meaning, it is not mechanical.
+- When in doubt, don't downgrade.
 
 ## Artifact contracts
 
@@ -167,22 +177,25 @@ Simple task ⇒ fast model. Complex or correctness-critical ⇒ powerful model. 
 
 Artifact folders are numbered sequentially: `001-partial-refunds`, `002-fix-invoice-tax`, …
 
-## State discipline
+## State discipline — one source of truth
 
-State files hold references only — paths, ids, task numbers, status enums. Never store code or long text in state. Example `current-plan.json`:
+Task *content* (descriptions, files, criteria, skills) lives only in `implementation-plan.md`. State files are pointers and status — duplicating content across plan and state caused real drift and 500+-line state files. Example `current-plan.json`, complete:
 
 ```json
 {
   "artifact": ".claude/f67/artifacts/001-partial-refunds",
-  "spec": "prompt-spec.md",
-  "plan": "implementation-plan.md",
-  "tasks": [
-    { "id": "T1", "title": "Add refund amount to schema", "status": "done" },
-    { "id": "T2", "title": "Refund service partial path", "status": "pending", "dependsOn": ["T1"] }
-  ],
+  "tasks": { "T1": "done", "T2": "pending", "T3": "pending" },
+  "dependsOn": { "T2": ["T1"], "T3": ["T1"] },
+  "parallelizable": [["T2", "T3"]],
   "nextTask": "T2"
 }
 ```
+
+`changed-files.json` is `{ "path": "...", "change": "added|modified|deleted", "task": "T1" }` entries for the current workflow only — no notes, no summaries. It resets when a new artifact folder is created (history lives in git and in domain memory).
+
+## Metrics — measure, don't guess
+
+At the end of every command, the orchestrator appends one line to `logs/metrics.jsonl`: `{ "ts": "", "command": "", "complexity": "", "dispatches": 0, "parallel": 0, "artifactBytes": 0, "outcome": "" }`. `/f67-memory audit` reports aggregates so optimization decisions are made on the team's real usage, not intuition.
 
 ## config.yaml (runtime)
 
@@ -213,7 +226,7 @@ F67 ships no stack-specific knowledge. It ships *rules* for discovering, injecti
 
 ### Technical-area → skill category mapping
 
-The domain detector tags each request with technical areas; the context builder maps areas to skill *categories* and searches the sources above for matches:
+The orchestrator's classification tags each request with technical areas; the context builder maps areas to skill *categories* and searches the sources above for matches:
 
 | Technical area | Skill categories to search for |
 |---|---|

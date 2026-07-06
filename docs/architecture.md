@@ -4,35 +4,36 @@
 
 The main Claude Code session is the orchestrator. It receives `/f67-*` commands, maintains lightweight state under `.claude/f67/state/`, dispatches agents, merges their summaries, and reports to the user. It never implements, reviews, or loads large contexts — agents return digests and artifact paths, not raw content.
 
-## The thirteen agents
+## The twelve agents
+
+Request classification is done by the orchestrator itself from `memory/index.json` — it is not an agent.
 
 | # | Agent | Stage | Writes |
 |---|---|---|---|
-| 1 | f67-domain-detector | Detect domains | selected-domains.json |
-| 2 | f67-memory-loader | Load DDM | memory digest (in-flight) |
-| 3 | f67-discovery | Discover code | discovery report (in-flight) |
-| 4 | f67-context-builder | Build context | context.md, active-context.json |
-| 5 | f67-prompt-builder | Build spec | prompt-spec.md, current-spec.json |
-| 6 | f67-planner | Plan | implementation-plan.md, current-plan.json |
-| 7 | f67-task-decomposer | Decompose | task tree, current-plan.json |
-| 8 | f67-implementer | Implement one task | code, execution-report.md, state |
-| 9 | f67-tester | Test | tests, execution-report.md §Testing |
-| 10 | f67-reviewer | Review | review-report.md |
-| 11 | f67-improver | Improve | improvement-plan.md (+ applied fixes) |
-| 12 | f67-memory-evolver | Evolve memory | DDM updates, graphs, sessions |
-| 13 | f67-executor | Fast path (trivial/small) | code + memory delta + fast log, one dispatch |
+| 1 | f67-memory-loader | Load DDM | memory digest (in-flight) |
+| 2 | f67-discovery | Discover code | discovery report (in-flight) |
+| 3 | f67-context-builder | Build context | context.md |
+| 4 | f67-prompt-builder | Build spec | prompt-spec.md, current-spec.json |
+| 5 | f67-planner | Plan | implementation-plan.md |
+| 6 | f67-task-decomposer | Decompose | task tree (in plan doc), status maps in current-plan.json |
+| 7 | f67-implementer | Implement one task | code, execution-report.md, memory delta |
+| 8 | f67-tester | Test | tests, execution-report.md §Testing |
+| 9 | f67-reviewer | Review | review-report.md |
+| 10 | f67-improver | Improve | improvement-plan.md (+ applied fixes) |
+| 11 | f67-memory-evolver | Evolve memory | DDM updates, graphs, index.json |
+| 12 | f67-executor | Fast path (trivial/small) | code + memory delta + fast log, one dispatch |
 
 Single responsibility is enforced by each agent's rules section: implementer executes exactly one task; tester never weakens assertions or patches implementation; reviewer never edits code; evolver never touches application code.
 
 ## Command → agent mapping
 
-- `/f67-init` → discovery (×N, scoped) + memory-evolver, orchestrated in four phases with user confirmation of domain boundaries.
-- `/f67-prompt` → detector → memory-loader → discovery → context-builder → prompt-builder.
+- `/f67-init` → parallel discovery (×N, scoped) + memory-evolver, with user confirmation of domain boundaries.
+- `/f67-prompt` → in-session classification → [memory-loader ∥ discovery] → (context-builder for large) → prompt-builder.
 - `/f67-plan` → planner → task-decomposer.
 - `/f67-execute` → executor (fast path, one dispatch, self-scoped).
 - `/f67-implement` → implementer (one task; parallel implementers for independent tasks).
 - `/f67-test` → tester. `/f67-review` → reviewer. `/f67-improve` → improver.
-- `/f67-discover`, `/f67-explain`, `/f67-brainstorm`, `/f67-memory` → read-only combinations of detector/memory-loader/discovery.
+- `/f67-discover`, `/f67-explain`, `/f67-brainstorm`, `/f67-memory` → in-session classification + read-only combinations of memory-loader/discovery.
 - `/f67-sync` → memory-evolver (+ scoped discovery for thin areas).
 - `/f67-docs` → memory-loader + discovery; orchestrator writes docs (authoring style is a session-level concern).
 
@@ -42,7 +43,7 @@ Every stage persists its output as a markdown artifact and consumes its predeces
 
 ## Why graphs
 
-Graphs (`domain-graph`, `file-graph`, `dependency-graph`) let agents find context by traversal instead of repo-wide scanning: domain → files → dependencies → tests in a few reads. Discovery falls back to targeted grep only for gaps, and full-repo scans are treated as a failure mode. `/f67-sync` keeps graphs honest; the discovery agent reports drift whenever the graph and the working tree disagree.
+The memory index plus coarse graphs (`domain-graph`, `dependency-graph`) and per-domain layer-split file maps let agents find context by traversal instead of repo-wide scanning: index → domain → related files → dependencies → tests in a few reads. Discovery falls back to targeted grep only for gaps, and full-repo scans are treated as a failure mode. `/f67-sync` keeps graphs honest; the discovery agent reports drift whenever the graph and the working tree disagree.
 
 ## Extension points
 

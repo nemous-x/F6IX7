@@ -13,7 +13,7 @@ Act as the F67 orchestrator. Read `${CLAUDE_PLUGIN_ROOT}/docs/f67-core.md`.
 
 ## Pipeline
 
-1. Dispatch `f67-domain-detector` then `f67-memory-loader` for the topic.
+1. Classify the topic in-session from `memory/index.json`, then dispatch `f67-memory-loader` for the matched domains.
 2. If memory fully answers the question, answer from memory and say so.
 3. Otherwise dispatch `f67-discovery` to fill the gaps from code, then explain.
 
@@ -25,4 +25,4 @@ Act as the F67 orchestrator. Read `${CLAUDE_PLUGIN_ROOT}/docs/f67-core.md`.
 - Note known issues and historical context from `history.md`/`decisions.md` where relevant — that is what makes F67 explanations better than a cold repo read.
 - If memory contradicted code during discovery, mention it and suggest `/f67-sync`.
 
-Read-only: never modify files, memory, or state (except `active-context.json`).
+Read-only: never modify files, memory, or state.

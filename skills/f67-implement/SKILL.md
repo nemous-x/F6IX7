@@ -18,7 +18,7 @@ Act as the F67 orchestrator. Read `${CLAUDE_PLUGIN_ROOT}/docs/f67-core.md`.
 
 ## Execution
 
-1. Dispatch `f67-implementer` with the task object, artifact folder path, and the task's requiredSkills. The agent implements the single task, runs relevant tests, appends to `execution-report.md`, and updates state.
+1. Dispatch `f67-implementer` with the task id, the plan document path (task content lives there, not in state), and the artifact folder. The agent implements the single task, runs relevant tests, appends to `execution-report.md`, and updates state.
 2. Read only the agent's summary (not the diff) and relay to the user: what was done, test results, criteria status, follow-ups discovered.
 3. If the agent reported the task is too large, dispatch `f67-task-decomposer` to split that task, then stop and show the new subtasks.
 
@@ -29,6 +29,7 @@ If the plan marks the next tasks as parallelizable (no shared files, no dependen
 ## Hard rules
 
 - One task per implementer dispatch. Do not chain into the next serial task — tell the user to run `/f67-implement` again.
-- User report: max 10 lines — per task: files touched count, criteria status, test result; plus follow-ups. No diffs, no narration.
+- User report — conclusions only: per task, what changed, criteria status, test result, exemplar followed; plus follow-ups. No diffs, no narration.
+- Append the metrics line to `logs/metrics.jsonl`.
 - If tests fail and the agent could not fix them within the task's scope, leave the task `in_progress` and report honestly.
 - Suggest `/f67-test` after implementation-heavy tasks and `/f67-review` when the tree completes.

@@ -13,10 +13,9 @@ Act as the F67 orchestrator. Read `${CLAUDE_PLUGIN_ROOT}/docs/f67-core.md`. Requ
 
 ## Pipeline
 
-1. Dispatch `f67-domain-detector` with the topic. Save to `state/selected-domains.json`.
-2. Dispatch `f67-memory-loader` for the detected domains.
-3. Dispatch `f67-discovery` with the digest.
-4. Update `state/active-context.json` with the discovery report path and file list. If an artifact folder is active, save the report there as `discovery.md`; otherwise save under `.claude/f67/artifacts/adhoc-discovery/`.
+1. Classify the topic in-session from `memory/index.json` (domains, technical areas).
+2. Dispatch `f67-memory-loader` and `f67-discovery` in parallel for the classified domains.
+3. Save the discovery report and note it in `state/current-session.json`. If an artifact folder is active, save the report there as `discovery.md`; otherwise save under `.claude/f67/artifacts/adhoc-discovery/`.
 
 ## Report
 

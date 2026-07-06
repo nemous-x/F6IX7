@@ -3,8 +3,8 @@
 F67 makes Claude behave like a senior engineer who has been on your project since day one. Instead of prompt → search → code → forget, every request runs through a deterministic pipeline backed by Domain Driven Memory that lives in your repository and grows with it.
 
 ```
-Detect domains → Load memory → Discover context → Build context → Build spec
-→ Plan → Decompose → Implement (one task) → Test → Review → Improve → Evolve memory
+Classify → Load memory ∥ Discover → Build context → Build spec
+→ Plan → Decompose → Implement → Test → Review → Improve → Evolve memory
 ```
 
 Understanding always comes first. The AI never starts by writing code.
@@ -73,7 +73,7 @@ Feature — full pipeline:
 /f67-sync             # reconcile memory with the repo
 ```
 
-F67 is built to be fast: complexity-based routing (small work never pays full-pipeline overhead), parallel agent dispatch, hard token budgets on every agent output and artifact, model routing (fast models for detection/memory, powerful models for planning/implementation/review), and memory that updates continuously — every completed task writes its delta immediately.
+F67 is built to be fast without trading quality: complexity-based routing (small work never pays full-pipeline overhead), in-session request classification from a single memory index (no dispatch round-trip), parallel agent dispatch, purpose-contract outputs (every artifact line has a consumer — no code dumps, no restating), and memory that stays current — every completed task writes its delta immediately and every workflow ends with a memory fold. Quality work always runs on the session's most capable model; only provably mechanical bookkeeping is downgraded. Consistency is built in: implementers must find and mirror the codebase's canonical exemplar for whatever they build, and self-review before returning.
 
 Each stage writes an artifact (`prompt-spec.md`, `implementation-plan.md`, `execution-report.md`, `review-report.md`, `improvement-plan.md`) into `.claude/f67/artifacts/<NNN>-<slug>/`. Later stages consume artifacts, not conversation history — you can close the session between any two stages.
 

@@ -34,7 +34,8 @@ Create `.claude/f67/` per the core conventions layout:
 1. `config.yaml` — fill `project.*` from Phase 1. Then resolve skills per `${CLAUDE_PLUGIN_ROOT}/templates/skill-injection-rules.md`: match the detected stack and technical areas against the user's installed Claude Code skills/plugins and any existing project skills; record matches in `skills.available` and unmatched categories in `skills.requested`.
 2. `memory/global/` — write architecture.md, coding-standards.md, conventions.md, testing.md, ui.md, design-system.md, security.md, glossary.md from Phase 1 findings. Use templates in `${CLAUDE_PLUGIN_ROOT}/templates/memory/global/`. Only create files with real content.
 3. `memory/domains/<domain>/` — dispatch `f67-discovery` agents for confirmed domains **in parallel batches**, then write each domain's layer-organized memory (`overview.md`, `business-logic.md`, `backend.md`, `web.md`, `mobile.md` as applicable, `tests.md`) from `${CLAUDE_PLUGIN_ROOT}/templates/memory/domain/`. Populate layer-split related-files.json and per-domain graph.json. Every file dense and ≤150 lines.
-4. `graphs/` — build domain-graph.json, file-graph.json, dependency-graph.json per `${CLAUDE_PLUGIN_ROOT}/schemas/graph.schema.json`.
+4. `graphs/` — build domain-graph.json and dependency-graph.json per `${CLAUDE_PLUGIN_ROOT}/schemas/graph.schema.json` (per-file mapping lives in each domain's related-files.json).
+4b. `memory/index.json` — the entry point every command reads first: per-domain summary, keywords, layers, updatedAt, plus lastSyncCommit = current HEAD.
 5. `state/` — initialize empty state files from `${CLAUDE_PLUGIN_ROOT}/templates/state/`.
 
 For large repos, process domains in parallel batches and checkpoint progress in `state/progress.json` after each batch so init can resume.
@@ -43,6 +44,7 @@ For large repos, process domains in parallel batches and checkpoint progress in 
 
 Before declaring init complete:
 
+- `memory/index.json` exists, parses, and lists every domain with keywords and layers.
 - Every domain has overview.md and related-files.json with existing paths.
 - Graphs parse against the schema; all edges reference existing nodes.
 - Spot-check 3 random file→domain associations by reading the files.

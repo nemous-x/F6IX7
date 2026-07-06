@@ -12,12 +12,13 @@ Act as the F67 orchestrator. This is the speed-optimized route: one agent dispat
 
 ## Flow
 
-1. Dispatch `f67-executor` with the user's request verbatim. No detector, no memory-loader, no separate discovery — the executor scopes itself from graphs and layer memory. If the request clearly involves complex business logic, dispatch with the user's top model instead of the executor's default.
+1. Dispatch `f67-executor` with the user's request verbatim — session model, full quality. No classification dispatch, no memory-loader, no separate discovery: the executor scopes itself from `memory/index.json` and layer memory.
 2. If the executor answers "too large for fast path", relay its one-line reason and offer `/f67-prompt` — do not retry or decompose here.
-3. Relay the executor's report as-is (it is already ≤10 lines). Add nothing.
+3. Relay the executor's report as-is — it is already conclusions-only. Add nothing.
 
 ## Rules
 
 - Never use this route for multi-domain work, business-rule changes, or migrations — the executor's scope guard enforces this, respect it.
 - The executor updates memory itself; do not dispatch the memory evolver afterward.
-- Total orchestrator output to the user: under 10 lines, straight to the point.
+- Orchestrator output to the user: conclusions only, straight to the point.
+- Append the metrics line to `logs/metrics.jsonl`.

@@ -1,15 +1,10 @@
-# State file templates
+# State file contracts
 
-All state files hold references only — never code or long text.
+State files are pointers and status only. Task content lives in the plan document; file knowledge lives in domain memory. Never duplicate either into state.
 
 `current-session.json`
 ```json
-{ "startedAt": "", "command": "", "artifact": "", "stage": "detect|memory|discover|context|spec|plan|implement|test|review|improve|evolve" }
-```
-
-`active-context.json`
-```json
-{ "artifact": "", "contextFile": "", "files": [], "domains": [] }
+{ "startedAt": "", "command": "", "artifact": "", "stage": "", "classification": { "domains": [], "technicalAreas": [], "complexity": "", "greenfield": false } }
 ```
 
 `current-spec.json`
@@ -17,30 +12,19 @@ All state files hold references only — never code or long text.
 { "artifact": "", "spec": "prompt-spec.md", "blockingQuestions": false }
 ```
 
-`current-plan.json`
+`current-plan.json` — status maps only:
 ```json
-{
-  "artifact": "",
-  "strategy": "",
-  "milestones": [],
-  "tasks": [{ "id": "T1", "title": "", "status": "pending|in_progress|done|blocked", "dependsOn": [], "files": [], "requiredSkills": [] }],
-  "nextTask": ""
-}
+{ "artifact": "", "tasks": { "T1": "done", "T2": "pending" }, "dependsOn": { "T2": ["T1"] }, "parallelizable": [["T2","T3"]], "nextTask": "T2" }
 ```
 
-`progress.json`
-```json
-{ "artifact": "", "tasksDone": 0, "tasksTotal": 0, "lastUpdated": "" }
-```
-
-`changed-files.json`
+`changed-files.json` — current workflow only, resets with each new artifact:
 ```json
 { "artifact": "", "files": [{ "path": "", "change": "added|modified|deleted", "task": "T1" }] }
 ```
-
-`selected-domains.json` — verbatim output of f67-domain-detector.
 
 `execution-history.json`
 ```json
 { "lastSyncCommit": "", "workflows": [{ "artifact": "", "completedAt": "", "memorySynced": true }] }
 ```
+
+`progress.json` — transient checkpoint for resumable long operations (/f67-init batches); delete when done.

@@ -16,13 +16,13 @@ Act as the F67 orchestrator. Read `${CLAUDE_PLUGIN_ROOT}/docs/f67-core.md`.
 
 ## Pipeline
 
-1. `medium` complexity (from `state/selected-domains.json`): dispatch `f67-planner` alone with instructions to also produce the task tree itself in the same pass — one dispatch instead of two. `large`: dispatch `f67-planner`, then `f67-task-decomposer`.
-2. Plan + task tree together must stay ≤150 lines and reference the spec by section, never restate it.
-3. Sanity-check the result yourself (orchestrator-level, no code reading): every acceptance criterion owned by a task, dependencies form a DAG, no task touches more than ~5 files.
-4. Mark tasks that share no files and no dependency edge as parallelizable, so implement/test phases can run them concurrently.
+1. `medium` complexity (from `state/current-session.json`): dispatch `f67-planner` alone with instructions to also produce the task tree in the same pass — one dispatch instead of two. `large`: dispatch `f67-planner`, then `f67-task-decomposer`.
+2. Sanity-check the result yourself (orchestrator-level, no code reading): every acceptance criterion owned by a task, dependencies form a DAG, no task touches more than ~5 files.
+3. Mark tasks that share no files and no dependency edge as parallelizable, so implement/test phases can run them concurrently.
+4. Append the metrics line to `logs/metrics.jsonl`.
 
-## Report to the user — max 10 lines
+## Report to the user — conclusions only
 
-Strategy (1 line with reason), milestone count, task count + first task, top risk, artifact path, "next: /f67-implement". Nothing else.
+Strategy with its reason, milestones, task count + first task, top risks, artifact path, next step. No plan restatement.
 
 Never implement anything in this workflow.

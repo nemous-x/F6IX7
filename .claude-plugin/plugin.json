@@ -1,6 +1,6 @@
 {
   "name": "f67",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "F67 — AI Development Operating System for Claude Code. Orchestrates the full software development lifecycle with Domain Driven Memory, specialized agents, workflow artifacts, and deterministic phase-based workflows.",
   "author": {
     "name": "Nemous",

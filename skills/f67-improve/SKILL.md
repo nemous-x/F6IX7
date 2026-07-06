@@ -20,5 +20,7 @@ Act as the F67 orchestrator. Read `${CLAUDE_PLUGIN_ROOT}/docs/f67-core.md`.
 2. Present the plan and ask the user which items to apply (default: all must-fix items).
 3. Dispatch `f67-improver` in apply mode with the approved item list. It applies items one at a time, testing after each, and updates the execution report.
 4. If blockers were fixed, suggest a focused re-review (`/f67-review`).
+5. **Workflow-end memory (mandatory)**: once application finishes (or the user declines to apply), dispatch `f67-memory-evolver` in delta mode to fold the workflow into memory and the index.
+6. Append the metrics line to `logs/metrics.jsonl`.
 
 Deferred items are recorded for the memory evolver to write into the domain's `known-issues.md`. Never apply items the user did not approve.
