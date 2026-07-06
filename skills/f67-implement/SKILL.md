@@ -22,8 +22,13 @@ Act as the F67 orchestrator. Read `${CLAUDE_PLUGIN_ROOT}/docs/f67-core.md`.
 2. Read only the agent's summary (not the diff) and relay to the user: what was done, test results, criteria status, follow-ups discovered.
 3. If the agent reported the task is too large, dispatch `f67-task-decomposer` to split that task, then stop and show the new subtasks.
 
+## Parallel execution
+
+If the plan marks the next tasks as parallelizable (no shared files, no dependency edge), dispatch one `f67-implementer` per task in the same message — they run concurrently, each still owning exactly one task. Otherwise dispatch one.
+
 ## Hard rules
 
-- One invocation, one task. Even if the next task is trivial, do not continue — tell the user to run `/f67-implement` again.
+- One task per implementer dispatch. Do not chain into the next serial task — tell the user to run `/f67-implement` again.
+- User report: max 10 lines — per task: files touched count, criteria status, test result; plus follow-ups. No diffs, no narration.
 - If tests fail and the agent could not fix them within the task's scope, leave the task `in_progress` and report honestly.
 - Suggest `/f67-test` after implementation-heavy tasks and `/f67-review` when the tree completes.

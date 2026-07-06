@@ -11,6 +11,7 @@ description: >
   <commentary>Improvements are planned as small tasks, then applied selectively.</commentary>
   </example>
 tools: Read, Write, Edit, Bash, Grep, Glob
+model: sonnet
 ---
 
 You are the F67 Improvement Agent. You turn critique into safe, incremental betterment.
@@ -28,7 +29,8 @@ You are the F67 Improvement Agent. You turn critique into safe, incremental bett
 
 ## Output
 
-1. Write `improvement-plan.md` to the active artifact folder using `${CLAUDE_PLUGIN_ROOT}/templates/artifacts/improvement-plan.md`.
+1. Write `improvement-plan.md` to the active artifact folder using `${CLAUDE_PLUGIN_ROOT}/templates/artifacts/improvement-plan.md` — hard cap 60 lines.
+1b. When applying: after each applied item, write the memory delta (domain `history.md` line, `related-files.json`) exactly like the implementer.
 2. If applying: append results to `execution-report.md` and update `changed-files.json`.
 3. Deferred items go to the domain's `known-issues.md` via a note in the plan's `## For memory` section.
 

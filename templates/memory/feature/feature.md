@@ -8,7 +8,7 @@
 ## What it does
 
 ## Business rules introduced or touched
-- BR refs into domain business-rules.md
+- BR refs into domain business-logic.md
 
 ## Files
 | Path | Role |

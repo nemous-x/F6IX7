@@ -4,7 +4,7 @@
 
 The main Claude Code session is the orchestrator. It receives `/f67-*` commands, maintains lightweight state under `.claude/f67/state/`, dispatches agents, merges their summaries, and reports to the user. It never implements, reviews, or loads large contexts — agents return digests and artifact paths, not raw content.
 
-## The twelve agents
+## The thirteen agents
 
 | # | Agent | Stage | Writes |
 |---|---|---|---|
@@ -20,6 +20,7 @@ The main Claude Code session is the orchestrator. It receives `/f67-*` commands,
 | 10 | f67-reviewer | Review | review-report.md |
 | 11 | f67-improver | Improve | improvement-plan.md (+ applied fixes) |
 | 12 | f67-memory-evolver | Evolve memory | DDM updates, graphs, sessions |
+| 13 | f67-executor | Fast path (trivial/small) | code + memory delta + fast log, one dispatch |
 
 Single responsibility is enforced by each agent's rules section: implementer executes exactly one task; tester never weakens assertions or patches implementation; reviewer never edits code; evolver never touches application code.
 
@@ -28,7 +29,8 @@ Single responsibility is enforced by each agent's rules section: implementer exe
 - `/f67-init` → discovery (×N, scoped) + memory-evolver, orchestrated in four phases with user confirmation of domain boundaries.
 - `/f67-prompt` → detector → memory-loader → discovery → context-builder → prompt-builder.
 - `/f67-plan` → planner → task-decomposer.
-- `/f67-implement` → implementer (one task).
+- `/f67-execute` → executor (fast path, one dispatch, self-scoped).
+- `/f67-implement` → implementer (one task; parallel implementers for independent tasks).
 - `/f67-test` → tester. `/f67-review` → reviewer. `/f67-improve` → improver.
 - `/f67-discover`, `/f67-explain`, `/f67-brainstorm`, `/f67-memory` → read-only combinations of detector/memory-loader/discovery.
 - `/f67-sync` → memory-evolver (+ scoped discovery for thin areas).

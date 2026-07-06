@@ -16,12 +16,13 @@ Act as the F67 orchestrator. Read `${CLAUDE_PLUGIN_ROOT}/docs/f67-core.md`.
 
 ## Pipeline
 
-1. Dispatch `f67-planner` with the artifact folder path. It writes `implementation-plan.md` and seeds `state/current-plan.json`.
-2. Dispatch `f67-task-decomposer`. It appends the `## Task tree` and fills `tasks` + `nextTask` in `state/current-plan.json`.
+1. `medium` complexity (from `state/selected-domains.json`): dispatch `f67-planner` alone with instructions to also produce the task tree itself in the same pass — one dispatch instead of two. `large`: dispatch `f67-planner`, then `f67-task-decomposer`.
+2. Plan + task tree together must stay ≤150 lines and reference the spec by section, never restate it.
 3. Sanity-check the result yourself (orchestrator-level, no code reading): every acceptance criterion owned by a task, dependencies form a DAG, no task touches more than ~5 files.
+4. Mark tasks that share no files and no dependency edge as parallelizable, so implement/test phases can run them concurrently.
 
-## Report to the user
+## Report to the user — max 10 lines
 
-Summarize: chosen strategy and why, milestones, task count, first task, notable risks. Point at the artifact. Suggest `/f67-implement` to execute the first task.
+Strategy (1 line with reason), milestone count, task count + first task, top risk, artifact path, "next: /f67-implement". Nothing else.
 
 Never implement anything in this workflow.

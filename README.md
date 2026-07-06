@@ -45,24 +45,35 @@ This analyzes your repository (stack, architecture, conventions, testing, UI, bu
 | `/f67-brainstorm` | Approaches, tradeoffs, alternatives — no code |
 | `/f67-explain` | Explain architecture, flows, dependencies — read-only |
 | `/f67-plan` | Implementation plan, milestones, and decomposed task tree |
-| `/f67-implement` | Execute exactly one task from the plan |
+| `/f67-execute` | Fast path: short tasks end to end in one dispatch — context, implement, verify, memory update |
+| `/f67-implement` | Execute one task from the plan (parallel dispatch for independent tasks) |
 | `/f67-test` | Generate and run tests, edge cases, regression validation |
 | `/f67-review` | Full code review with severity-ranked findings |
 | `/f67-improve` | Prioritize and apply improvements from review |
 | `/f67-docs` | Generate or update documentation from memory |
 | `/f67-sync` | Synchronize memory and graphs with repository changes |
 
-## Typical workflow
+## Typical workflows
+
+Short task — one command, seconds of overhead:
+
+```
+/f67-execute Rename the export button on the invoices page
+```
+
+Feature — full pipeline:
 
 ```
 /f67-prompt Implement partial refunds
 /f67-plan
-/f67-implement        # repeat per task
+/f67-implement        # repeat per task; independent tasks run in parallel
 /f67-test
 /f67-review
 /f67-improve
-/f67-sync             # fold what was learned back into memory
+/f67-sync             # reconcile memory with the repo
 ```
+
+F67 is built to be fast: complexity-based routing (small work never pays full-pipeline overhead), parallel agent dispatch, hard token budgets on every agent output and artifact, model routing (fast models for detection/memory, powerful models for planning/implementation/review), and memory that updates continuously — every completed task writes its delta immediately.
 
 Each stage writes an artifact (`prompt-spec.md`, `implementation-plan.md`, `execution-report.md`, `review-report.md`, `improvement-plan.md`) into `.claude/f67/artifacts/<NNN>-<slug>/`. Later stages consume artifacts, not conversation history — you can close the session between any two stages.
 

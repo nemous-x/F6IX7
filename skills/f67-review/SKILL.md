@@ -18,7 +18,7 @@ Act as the F67 orchestrator. Read `${CLAUDE_PLUGIN_ROOT}/docs/f67-core.md`.
 ## Pipeline
 
 1. Dispatch `f67-reviewer` with the artifact folder path. It writes `review-report.md` with located, severity-ranked findings and a verdict.
-2. Relay: verdict, blockers and majors in full, counts of minors/nits, and what was praised.
+2. User report — max 10 lines: verdict, blockers/majors (one line each), counts of minors/nits, artifact path.
 3. Route by verdict:
    - `approve` → suggest `/f67-improve` (optional) then let the memory evolver run (see `/f67-sync` or workflow completion).
    - `approve-with-fixes` / `rework` → suggest `/f67-improve` to plan the fixes.

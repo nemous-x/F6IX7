@@ -26,6 +26,6 @@ Act as the F67 orchestrator. Read `${CLAUDE_PLUGIN_ROOT}/docs/f67-core.md`.
 
 ## Report
 
-Summarize: domains updated, graph nodes/edges changed, artifacts folded in, drift corrected. Flag domains whose changes were too large to sync confidently and recommend `/f67-memory rebuild <domain>`.
+Max 10 lines: domains updated, graph deltas, artifacts folded, drift corrected, and any domain needing `/f67-memory rebuild`.
 
 Sync is additive and incremental — it never rewrites curated memory and is safe to run any time.
