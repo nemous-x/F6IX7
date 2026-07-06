@@ -29,7 +29,7 @@ If the plan marks the next tasks as parallelizable (no shared files, no dependen
 ## Hard rules
 
 - One task per implementer dispatch. Do not chain into the next serial task — tell the user to run `/f67-implement` again.
-- User report — conclusions only: per task, what changed, criteria status, test result, exemplar followed; plus follow-ups. No diffs, no narration.
+- User report — headlines only — one short line per outcome; details stay in the artifacts, expand only if the user asks. Per task one line: what changed, criteria ✓/✗, tests ✓/✗; plus follow-ups if any. No diffs, no narration.
 - Append the metrics line to `logs/metrics.jsonl`.
 - If tests fail and the agent could not fix them within the task's scope, leave the task `in_progress` and report honestly.
 - Suggest `/f67-test` after implementation-heavy tasks and `/f67-review` when the tree completes.

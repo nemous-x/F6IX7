@@ -18,7 +18,7 @@ An active artifact folder with `execution-report.md` and entries in `state/chang
 
 1. Dispatch `f67-tester` with the artifact folder path. It maps acceptance criteria to coverage, writes missing tests, runs the affected and regression suites, and appends `## Testing` to the execution report.
 2. If multiple completed tasks are independent, dispatch one `f67-tester` per task in parallel.
-3. User report — conclusions only: suites run + results, tests added, defects found. No test code.
+3. User report — headlines only — one short line per outcome; details stay in the artifacts, expand only if the user asks: suites ✓/✗, tests added count, defects if any.
 4. If defects were found, offer `/f67-implement` (as a fix task — dispatch `f67-task-decomposer` to add fix tasks to the plan) rather than letting the tester patch implementation code.
 
 Suggest `/f67-review` once tests are green.

@@ -18,12 +18,8 @@ Act as the F67 orchestrator. Read `${CLAUDE_PLUGIN_ROOT}/docs/f67-core.md`.
 ## Pipeline
 
 1. Dispatch `f67-reviewer` with the artifact folder path. It writes `review-report.md` with located, severity-ranked findings and a verdict.
-2. User report — conclusions only: verdict, blockers/majors, counts of minors/nits, artifact path.
-3. Route by verdict:
-   - `approve` → suggest `/f67-improve` (optional) then let the memory evolver run (see `/f67-sync` or workflow completion).
-   - `approve-with-fixes` / `rework` → suggest `/f67-improve` to plan the fixes.
-
-3. **Workflow-end memory (mandatory)**: on `approve`, dispatch `f67-memory-evolver` in delta mode now — memory freshness does not wait for `/f67-sync`. On other verdicts, the evolver runs after `/f67-improve` completes.
-4. Append the metrics line to `logs/metrics.jsonl`.
+2. User report — headlines only: verdict, blockers/majors one line each, counts of minors/nits, artifact path. Nothing else unless asked.
+3. Route by verdict: `approve` → dispatch `f67-memory-evolver` in delta mode now (mandatory — memory freshness does not wait for `/f67-sync`); `approve-with-fixes` / `rework` → suggest `/f67-improve`, after which the evolver runs.
+4. Append the metrics line to `logs/metrics.jsonl`, including the report's finding categories — the evolver uses recurrence to turn repeated criticism into conventions.
 
 The orchestrator never reviews code itself and never edits code in this workflow.

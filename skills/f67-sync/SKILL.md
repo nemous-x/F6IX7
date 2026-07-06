@@ -22,11 +22,12 @@ Act as the F67 orchestrator. Read `${CLAUDE_PLUGIN_ROOT}/docs/f67-core.md`.
    - Folds unprocessed workflow artifacts into domain memory, feature records, decisions, and session summaries.
    - Applies pending memory corrections from `context.md` files.
 2. For substantial new code in a domain with thin memory, dispatch `f67-discovery` scoped to that area first so the evolver has facts to record.
-3. Record the synced commit in `memory/index.json → lastSyncCommit` and `state/execution-history.json`; refresh every touched domain's `updatedAt`.
-4. Append the metrics line to `logs/metrics.jsonl`.
+3. Re-resolve `config.yaml → skills.map` yourself (installed skills may have changed since init); clear `skills.requested` entries that now resolve.
+4. Record the synced commit in `memory/index.json → lastSyncCommit` and `state/execution-history.json`; refresh every touched domain's `updatedAt`.
+5. Append the metrics line to `logs/metrics.jsonl`.
 
 ## Report
 
-Conclusions only: domains updated, drift corrected, artifacts folded, and any domain needing `/f67-memory rebuild`.
+Headlines only — one short line per outcome: domains updated, drift corrected, artifacts folded, rebuild recommendations if any. Expand only if the user asks.
 
 Sync is additive and incremental — it never rewrites curated memory and is safe to run any time.

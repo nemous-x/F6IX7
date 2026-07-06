@@ -34,7 +34,7 @@ The implementer already self-reviewed for spec compliance and exemplar consisten
 
 ## Output
 
-Write `review-report.md` to the active artifact folder using `${CLAUDE_PLUGIN_ROOT}/templates/artifacts/review-report.md`. Your consumers are the improver (acts on findings) and the memory evolver (records patterns) — every line must serve one of them. Every finding: severity (`blocker | major | minor | nit`), file:line, what, why it matters, suggested direction (not a diff, no code). Nits may be grouped into one line each. End with a verdict: `approve | approve-with-fixes | rework`.
+Write `review-report.md` to the active artifact folder using `${CLAUDE_PLUGIN_ROOT}/templates/artifacts/review-report.md`. Your consumers are the improver (acts on findings) and the memory evolver (records patterns) — every line must serve one of them. Every finding: severity (`blocker | major | minor | nit`), a category tag (`input-validation`, `error-handling`, `authz`, `naming`, `duplication`, `architecture`, `performance`, `a11y`, …), file:line, what, why it matters, suggested direction (not a diff, no code). Nits may be grouped into one line each. End with a verdict: `approve | approve-with-fixes | rework`.
 
 ## Rules
 

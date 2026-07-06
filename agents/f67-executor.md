@@ -29,4 +29,4 @@ Estimate scope from the domain graph and request. If the task touches 3+ domains
 
 ## Output to orchestrator
 
-Conclusions only: what changed (per file, one line), which exemplar you mirrored, verification result, memory updated (domains), follow-ups if any. No code, no diffs, no narration.
+Headlines only — one line per outcome: what changed per file, exemplar mirrored, verification result, memory updated (domains), follow-ups if any. No code, no diffs, no narration.

@@ -155,7 +155,7 @@ And three working habits:
 
 - **Digest, don't dump** — an agent that pastes a file it read into its output has failed its consumer.
 - **Read scoped** — read the sections the index/graphs point to, not whole files or directories.
-- **User reports are conclusions** — outcome, what's next, where the artifact is. No process narration. Length follows substance.
+- **User reports are headlines.** The user sees one line per outcome — what was done, result, next step — like a changelog entry, not a summary. No process narration, no restating artifacts, no closing recaps. Details exist in the artifacts; expand only when the user explicitly asks for details or an explanation. A command whose chat output is longer than five short lines has failed this rule (exceptions: /f67-explain and /f67-brainstorm, whose product IS the text, and blocking questions that need the user's answer).
 
 ## Model policy — decided by the orchestrator at dispatch time
 
@@ -195,7 +195,15 @@ Task *content* (descriptions, files, criteria, skills) lives only in `implementa
 
 ## Metrics — measure, don't guess
 
-At the end of every command, the orchestrator appends one line to `logs/metrics.jsonl`: `{ "ts": "", "command": "", "complexity": "", "dispatches": 0, "parallel": 0, "artifactBytes": 0, "outcome": "" }`. `/f67-memory audit` reports aggregates so optimization decisions are made on the team's real usage, not intuition.
+At the end of every command, the orchestrator appends one line to `logs/metrics.jsonl`: `{ "ts": "", "command": "", "complexity": "", "dispatches": 0, "parallel": 0, "artifactBytes": 0, "outcome": "", "findingCategories": [] }` (`findingCategories` from review workflows). `/f67-memory audit` reports aggregates so optimization decisions are made on the team's real usage, not intuition.
+
+## Learning from critique — recurring findings become conventions
+
+Praise teaches memory what to repeat; repeated criticism must teach it what to prevent. The reviewer tags every finding with a category (e.g. `input-validation`, `error-handling`, `naming`, `authz`, `duplication`). When the memory evolver sees the same category across 3 recent workflows (from metrics + review reports), the finding is no longer a finding — it is a missing convention: the evolver proposes a one-line rule for `memory/global/` (or a project skill) to the user, and records acceptance as a decision. Prevention beats re-detection.
+
+## Memory aging
+
+Memory files must stay permanently cheap to load. The evolver compacts as it goes: `history.md` entries older than the last 10 workflows collapse to one line per feature (detail lives in the feature record); resolved items leave `known-issues.md`; superseded `## Learned` entries are folded into the curated sections' spirit by proposing the edit to the user (never silently). Growth without compaction is a defect.
 
 ## config.yaml (runtime)
 
@@ -210,7 +218,8 @@ memory:
   autoEvolve: true     # run memory evolution after workflows
   protectCurated: true
 skills:
-  available: []        # resolved skills discovered/installed for this project, filled by /f67-init and /f67-sync
+  map: {}              # technicalArea -> resolved skill (project path or installed skill name),
+                       # built by /f67-init, re-resolved by /f67-sync — per-request injection is a lookup
   requested: []        # skills F67 recommended but the user hasn't added yet
 ```
 
@@ -218,15 +227,17 @@ skills:
 
 F67 ships no stack-specific knowledge. It ships *rules* for discovering, injecting, and requesting skills (`${CLAUDE_PLUGIN_ROOT}/templates/skill-injection-rules.md`). Skills are resolved during context building, declared in the prompt-spec, and consumed by the planner, implementer, tester, and reviewer. Never load all available skills — only the mapped ones.
 
-### Skill sources (resolution order)
+### Resolution is orchestrator-owned and cached
 
-1. **Project skills** — `.claude/f67/skills/*.md`: rules specific to this project (business domains, the project's stack conventions).
-2. **Installed skills** — Claude Code skills and plugins already installed in the user's environment. Match by comparing skill names/descriptions against the request's technical areas.
-3. **Requested skills** — nothing matched: F67 must not silently proceed. Recommend that the user install a matching skill from a plugin marketplace, or offer to generate a project skill draft into `.claude/f67/skills/` from the repo's own conventions and memory. Record the recommendation in `config.yaml → skills.requested`.
+Only the orchestrator (main session) can see the user's installed skills and plugins — subagents cannot. So resolution happens once, in the orchestrator, and is cached:
+
+1. **At `/f67-init`** (and re-resolved at `/f67-sync`): the orchestrator matches each technical area the project needs against project skills (`.claude/f67/skills/*.md`) first, then installed Claude Code skills/plugins, and writes the result to `config.yaml → skills.map`.
+2. **Per request**: injection is a dictionary lookup — the orchestrator reads `skills.map` for the request's technical areas and passes the resolved names/paths to agents in the dispatch. No searching, no re-matching.
+3. **Unmapped areas**: F67 must not silently proceed on priors. The gap is recorded in `skills.requested`, surfaced to the user (install from a marketplace, or let F67 generate an evidence-based project skill), and agents derive rules from project evidence per `skill-injection-rules.md` meanwhile.
 
 ### Technical-area → skill category mapping
 
-The orchestrator's classification tags each request with technical areas; the context builder maps areas to skill *categories* and searches the sources above for matches:
+The orchestrator's classification tags each request with technical areas; these are the `skills.map` keys resolved at init/sync:
 
 | Technical area | Skill categories to search for |
 |---|---|
@@ -239,7 +250,7 @@ The orchestrator's classification tags each request with technical areas; the co
 | infrastructure | deployment, CI/CD, containers, observability |
 | testing | the project's test framework, testing strategy |
 
-When no skill matches a category, the rules are derived from the project itself (configs, discovered patterns, memory, guidance files) per `skill-injection-rules.md`, and the gap becomes a skill request to the user. F67 never substitutes generic, non-project knowledge for a missing skill.
+When `skills.map` has no entry for a needed area, the rules are derived from the project itself (configs, discovered patterns, memory, guidance files) per `skill-injection-rules.md`, and the gap becomes a skill request to the user. F67 never substitutes generic, non-project knowledge for a missing skill.
 
 ### Business-specific skills
 

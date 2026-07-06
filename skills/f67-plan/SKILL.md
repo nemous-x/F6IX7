@@ -21,8 +21,8 @@ Act as the F67 orchestrator. Read `${CLAUDE_PLUGIN_ROOT}/docs/f67-core.md`.
 3. Mark tasks that share no files and no dependency edge as parallelizable, so implement/test phases can run them concurrently.
 4. Append the metrics line to `logs/metrics.jsonl`.
 
-## Report to the user — conclusions only
+## Report to the user — headlines only
 
-Strategy with its reason, milestones, task count + first task, top risks, artifact path, next step. No plan restatement.
+One line each: strategy + reason, milestones/tasks count, first task, top risk, artifact path. No plan restatement; expand only if the user asks.
 
 Never implement anything in this workflow.

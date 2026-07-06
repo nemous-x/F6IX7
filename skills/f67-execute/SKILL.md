@@ -20,5 +20,5 @@ Act as the F67 orchestrator. This is the speed-optimized route: one agent dispat
 
 - Never use this route for multi-domain work, business-rule changes, or migrations — the executor's scope guard enforces this, respect it.
 - The executor updates memory itself; do not dispatch the memory evolver afterward.
-- Orchestrator output to the user: conclusions only, straight to the point.
+- Orchestrator output to the user: headlines only — what changed, verification result, done. Expand only if the user asks.
 - Append the metrics line to `logs/metrics.jsonl`.
